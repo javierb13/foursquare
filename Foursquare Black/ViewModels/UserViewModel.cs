@@ -108,7 +108,7 @@ namespace Foursquare_Black.ViewModels
             client = new HttpClient();
             this.MyMap = map;
         }
-
+         
         #region loading methods
         //method we will call to get the users data
         //pass in grid so we can switch visibility when data is ready
