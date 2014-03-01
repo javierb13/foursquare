@@ -27,6 +27,8 @@ namespace Foursquare_Black
         UserViewModel userViewModel;
         //exploreViewModel
         ExploreViewModel exploreViewModel;
+        //Venue view model variable
+        VenueViewModel venueViewModel;
         //bool to keep check if user logged in
         bool loggedIn = false;
 
@@ -54,19 +56,39 @@ namespace Foursquare_Black
 
         protected override void OnBackKeyPress(System.ComponentModel.CancelEventArgs e)
         {
-            //if back button is pressed and the screen isnt showing the profile grid
-            //then that means we are viewing another grid. so close all other grids
-            //and show the user profile grid
-            if(userProfileGrid.Visibility == System.Windows.Visibility.Collapsed && loggedIn == true)
+            PanoramaItem panoramaItem = Panorama.SelectedItem as PanoramaItem;
+
+            if(panoramaItem.Name == "UserPanorama")
             {
-                userProfileGrid.Visibility = System.Windows.Visibility.Visible;
-                CheckInGrid.Visibility = System.Windows.Visibility.Collapsed;
-                friendShowGrid.Visibility = System.Windows.Visibility.Collapsed;
-                showTipGrid.Visibility = System.Windows.Visibility.Collapsed;
-                showMayorGrid.Visibility = System.Windows.Visibility.Collapsed;
-                //e.cancel stops app frem going back or backing out
-                e.Cancel = true;
+                //if back button is pressed and the screen isnt showing the profile grid
+                //then that means we are viewing another grid. so close all other grids
+                //and show the user profile grid
+                if (userProfileGrid.Visibility == System.Windows.Visibility.Collapsed && loggedIn == true)
+                {
+                    userProfileGrid.Visibility = System.Windows.Visibility.Visible;
+                    CheckInGrid.Visibility = System.Windows.Visibility.Collapsed;
+                    friendShowGrid.Visibility = System.Windows.Visibility.Collapsed;
+                    showTipGrid.Visibility = System.Windows.Visibility.Collapsed;
+                    showMayorGrid.Visibility = System.Windows.Visibility.Collapsed;
+                    //e.cancel stops app frem going back or backing out
+                    e.Cancel = true;
+                }
             }
+            else if(panoramaItem.Name == "ActivityPanorama")
+            {
+                //if back button pressed and activity isnt visible then make it visible. but if the back button is pressed
+                //and activityfeedgrid is visible then exit the app.
+                if (ActivityFeedGrid.Visibility == System.Windows.Visibility.Collapsed && loggedIn == true)
+                {
+                    //set venueviewmode to null so we can reclaim the memory
+                    venueViewModel = null;
+                    ActivityFeedGrid.Visibility = System.Windows.Visibility.Visible;
+                    venuePageGrid.Visibility = System.Windows.Visibility.Collapsed;
+                    ActivitySignInGrid.Visibility = System.Windows.Visibility.Collapsed;
+                    e.Cancel = true;
+                }
+            }
+
         }
 
         void MainPage_Loaded(object sender, RoutedEventArgs e)
@@ -83,14 +105,21 @@ namespace Foursquare_Black
                 userViewModel = new UserViewModel(locationMap);
                 //set datacontext of the panorama
                 UserPanorama.DataContext = userViewModel;
+                ActivityFeedGrid.DataContext = userViewModel;
                 //call method to load user data
                 userViewModel.getSignedInUser(userProfileGrid, MainProgessBar);
+                //call method to load activity feed
+                userViewModel.loadActivity(ActivityFeedGrid, ActivityProgressBar);
+                
 
 
                 //change visibility of sign in grid.
                 signInGrid.Visibility = System.Windows.Visibility.Collapsed;
+                ActivitySignInGrid.Visibility = System.Windows.Visibility.Collapsed;
                 MainProgessBar.Visibility = System.Windows.Visibility.Visible;
+                ActivityProgressBar.Visibility = System.Windows.Visibility.Visible;
                 MainProgessBar.IsEnabled = true;
+                ActivityProgressBar.IsEnabled = true;
 
 
             }
@@ -231,6 +260,25 @@ namespace Foursquare_Black
             overlay.GeoCoordinate = new GeoCoordinate(coordinate.Latitude, coordinate.Longitude);
             overlay.PositionOrigin = new Point(0.0, 1.0);
             mapLayer.Add(overlay);
+        }
+
+        private void ActivityFeedLongListSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ActivityFeedLongListSelector.SelectedItem == null)
+                return;
+
+            //get the selected item
+            var selectedItem = ActivityFeedLongListSelector.SelectedItem as ActivityItem;
+            venueViewModel = new VenueViewModel(locationMap);
+
+            venuePageGrid.DataContext = venueViewModel;
+
+            venueViewModel.loadVenueData(venuePageGrid, ActivityProgressBar, selectedItem.venueId);
+            ActivityFeedGrid.Visibility = System.Windows.Visibility.Collapsed;
+            ActivityProgressBar.IsEnabled = true;
+            ActivityProgressBar.Visibility = System.Windows.Visibility.Visible;
+
+            ActivityFeedLongListSelector.SelectedItem = null;
         }
 
     }

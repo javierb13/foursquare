@@ -253,7 +253,8 @@
                                 <DataTemplate>
                                     <Grid Margin="0,0,0,15">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="auto"/>
+                                            <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <Border Grid.Column="0" Background="Gray" Grid.ColumnSpan="2" />
                                         <Image Grid.Column="0" Source="{Binding image}" Width="64" />
@@ -360,6 +361,207 @@
                     </StackPanel>
                 </Grid>
 
+            </phone:PanoramaItem>
+            
+            <!--Activity Panorama-->
+            <phone:PanoramaItem x:Name="ActivityPanorama">
+                <phone:PanoramaItem.Header>
+                    <TextBlock Text="Activity" FontSize="36"/>
+                </phone:PanoramaItem.Header>
+                <Grid>
+                    <!--sign in grid-->
+                    <Grid  x:Name="ActivitySignInGrid">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Please log in." FontSize="36" Foreground="LightGray" />
+                        <Button x:Name="ActivitySignInButton" Grid.Row="1" Click="signInButton_Click" FontWeight="Bold" BorderBrush="Transparent" HorizontalAlignment="Left" Content="Sign In" Foreground="LightBlue" />
+                    </Grid>
+                    
+                    <!--activity grid. show after signing in-->
+                    <Grid x:Name="ActivityFeedGrid" Visibility="Collapsed">
+                        <phone:LongListSelector x:Name="ActivityFeedLongListSelector" ItemsSource="{Binding ActivityItems}" SelectionChanged="ActivityFeedLongListSelector_SelectionChanged">
+                            <phone:LongListSelector.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,25">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!--user photo-->
+                                        <Image Grid.Column="0" Source="{Binding image}" Width="80" />
+                                        <!--border to fill in blank space of column one row one behind category icon-->
+                                        <Border Background="#C4C3BC" Grid.Column="1"  />
+                                        <!--category icon-->
+                                        <Image Grid.Column="1" Source="{Binding catIcon}" />
+                                        <!--check in string-->
+                                        <TextBlock Grid.Column="2" Text="{Binding checkInLocation}" TextWrapping="Wrap" />
+                                        <!--comment stack panel-->
+                                        <StackPanel Grid.Row="2" Grid.ColumnSpan="3">
+                                            
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Foreground="White" Text="Comment: " />
+                                                <!--user comment if any-->
+                                                <TextBlock Foreground="White" Text="{Binding comment}" TextWrapping="Wrap" />
+                                            </StackPanel>
+                                            <Border Height="3" Background="LightBlue" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </phone:LongListSelector.ItemTemplate>
+                        </phone:LongListSelector>
+                        
+                        
+                    </Grid>
+                    
+                    <ScrollViewer Visibility="{Binding ElementName=venuePageGrid, Path=Visibility}">
+
+                    <!--Venue page. shows venue full details after venue is selected-->
+                    <Grid Visibility="Collapsed" x:Name="venuePageGrid">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        
+                        <!--photos are here-->
+                        <StackPanel x:Name="venuePhotoStackPanel" Grid.Row="0">
+                            <!--photos-->
+                            <TextBlock Text="Photos:" Foreground="LightBlue" />
+                            <!--horizontally scrollable photos-->
+                            <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+                                <ListBox ItemsSource="{Binding PhotoItems}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ListBox.ItemsPanel>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Image Source="{Binding image}" Width="300" />
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </ScrollViewer>
+                        </StackPanel>
+
+                        <!--tips go here-->
+                        <StackPanel Margin="0,0,0,20" x:Name="venueTipsStackPanel" Grid.Row="1">
+                            <!--Tips-->
+                            <TextBlock Text="Tips:" Foreground="LightBlue"/>
+                            <!--Horizontal scrolling tips-->
+                            <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+                                <ListBox ItemsSource="{Binding TipItems}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ListBox.ItemsPanel>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,5,0">
+                                                <StackPanel x:Name="c">
+                                                <!--name-->
+                                                <TextBlock Foreground="White" Text="{Binding userName}" Width="300" />
+                                                <!--comments they left-->
+                                                <TextBlock Foreground="White" Text="{Binding comment}" TextWrapping="Wrap" Width="300"/>
+                                            </StackPanel>
+                                                <Border Height="100" Width="5" VerticalAlignment="Top" Background="LightBlue" />
+                                            </StackPanel>
+                                            
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </ScrollViewer>
+                        </StackPanel>
+                        
+                        <!--description-->
+                            <StackPanel x:Name="detailStackPanel" Grid.Row="2">
+                                <ListBox ItemsSource="{Binding VenueItems}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel>
+                                                
+                                                <TextBlock Foreground="White" FontSize="36" Text="{Binding venueName}" Margin="0,0,0,25" />
+                                                
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,25">
+                                                    <Image Source="{Binding MayorImage}" Height="64" />
+                                                    <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                                                        <TextBlock Foreground="White" Text="{Binding MayorName}" />
+                                                        <TextBlock Text="mayor" Foreground="LightBlue" />
+                                                    </StackPanel>
+                                                </StackPanel>
+
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,25">
+                                                    <Image Source="{Binding CategoryImage}" Height="64" />
+                                                    <StackPanel VerticalAlignment="Center" Orientation="Vertical">
+                                                        <TextBlock FontSize="28" Text="Category" Foreground="LightBlue" />
+                                                        <TextBlock Foreground="White" Text="{Binding CategoryName}" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                
+                                                <Grid Margin="0,0,0,25">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Height="64" Width="64" Grid.Column="0" Background="LightBlue" />
+                                                    <TextBlock Text="{Binding Rating}" Foreground="White" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Foreground="LightBlue" Text="rating" FontSize="28" />
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Foreground="White" Text="{Binding Likes}" />
+                                                            <TextBlock Foreground="White" Text=" likes" />
+                                                        </StackPanel>
+                                                        
+                                                    </StackPanel>
+                                                </Grid>
+                                                
+                                                <StackPanel Margin="0,0,0,25">
+                                                    <TextBlock FontSize="28" Foreground="LightBlue" Text="stats" />
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Foreground="White" Text="{Binding CheckInStats}" />
+                                                        <TextBlock Foreground="White" Text=" check-ins" />
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Foreground="white" Text="{Binding CheckInVisitors}" />
+                                                        <TextBlock Foreground="white" Text=" visitors" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                
+                                                <StackPanel>
+                                                    <TextBlock Foreground="LightBlue" FontSize="28" Text="description" />
+                                                    <TextBlock Foreground="White" Text="{Binding description}" TextWrapping="Wrap" />
+                                                </StackPanel>
+
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </StackPanel>
+                        
+                        
+                        
+
+                    </Grid>
+                    </ScrollViewer>
+                    
+                    <!--progress bar-->
+                    <StackPanel VerticalAlignment="Center" Visibility="{Binding ElementName=ActivityProgressBar,Path=Visibility}">
+                        <TextBlock Foreground="LightBlue" Text="Loading..." HorizontalAlignment="Center"/>
+                        <ProgressBar x:Name="ActivityProgressBar" Visibility="Collapsed" IsIndeterminate="True" IsEnabled="False" Foreground="LightBlue" />
+                    </StackPanel>
+                </Grid>
             </phone:PanoramaItem>
 
         </phone:Panorama>

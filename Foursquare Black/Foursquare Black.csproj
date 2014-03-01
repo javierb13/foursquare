@@ -93,6 +93,8 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ClassFolder\ActivityClass.cs" />
+    <Compile Include="ClassFolder\ActivityItem.cs" />
     <Compile Include="ClassFolder\BadgeClass.cs" />
     <Compile Include="ClassFolder\BadgeItem.cs" />
     <Compile Include="ClassFolder\CheckIn.cs" />
@@ -108,6 +110,8 @@
     <Compile Include="ClassFolder\TipsItem.cs" />
     <Compile Include="ClassFolder\UserClass.cs" />
     <Compile Include="ClassFolder\UserItem.cs" />
+    <Compile Include="ClassFolder\VenueClass.cs" />
+    <Compile Include="ClassFolder\VenueItem.cs" />
     <Compile Include="LocalizedStrings.cs" />
     <Compile Include="loginPage.xaml.cs">
       <DependentUpon>loginPage.xaml</DependentUpon>
@@ -123,6 +127,7 @@
     </Compile>
     <Compile Include="ViewModels\ExploreViewModel.cs" />
     <Compile Include="ViewModels\UserViewModel.cs" />
+    <Compile Include="ViewModels\VenueViewModel.cs" />
     <Compile Include="ViewModels\ViewModel.cs" />
   </ItemGroup>
   <ItemGroup>

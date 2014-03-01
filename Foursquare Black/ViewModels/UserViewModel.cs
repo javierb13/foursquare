@@ -96,6 +96,17 @@ namespace Foursquare_Black.ViewModels
                 NotifyPropertyChanged("MayorItem");
             }
         }
+
+        ObservableCollection<ActivityItem> activityItems = new ObservableCollection<ActivityItem>();
+        public ObservableCollection<ActivityItem> ActivityItems
+        {
+            get { return activityItems; }
+            set
+            {
+                activityItems = value;
+                NotifyPropertyChanged("ActivityItems");
+            }
+        }
         
 
         //We will store our map in this variable which is passed in the 
@@ -606,6 +617,73 @@ namespace Foursquare_Black.ViewModels
 
         }
 
+        //load activity data when signed in
+        public async void loadActivity(Grid ActivityGrid, ProgressBar progessBar)
+        {
+            //bool to catch errors
+            bool error = false;
+            //response item to hold jsons string
+            string response = null;
+            //url
+            string url = "https://api.foursquare.com/v2/checkins/recent?oauth_token=" + App.accessToken + "&v=" + App.date;
+            
+            //try catch around network calls
+            try
+            {
+                response = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                //catch error if web request fails
+                error = true;
+            }
+
+            //if there is no error lets deserialize
+            if(!error)
+            {
+                //bool for json errors
+                bool jsonError = false;
+                //variable to deserialize to
+                ActivityClass.RootObject ac = null;
+
+                //try catch to catch any errors
+                try
+                {
+                    ac = JsonConvert.DeserializeObject<ActivityClass.RootObject>(response);
+                }
+                catch
+                {
+                    jsonError = true;
+                }
+
+                //if no json error caught then continue
+                if(!jsonError)
+                {
+                    for(int x = 0; x < ac.response.recent.Count; x++)
+                    {
+                        ActivityItems.Add(new ActivityItem()
+                        {
+                            image = ac.response.recent[x].user.photo.prefix +"120x120"+ ac.response.recent[x].user.photo.suffix,
+                            catIcon = ac.response.recent[x].venue.categories.First().icon.prefix + "bg_64" + ac.response.recent[x].venue.categories.First().icon.suffix,
+                            checkInId = ac.response.recent[x].id,
+                            checkInLocation = ac.response.recent[x].user.firstName + " " + ac.response.recent[x].user.lastName + " at " + ac.response.recent[x].venue.name,
+                            comment = ac.response.recent[x].shout,
+                            venueId = ac.response.recent[x].venue.id
+                        });
+                    }
+
+                    Deployment.Current.Dispatcher.BeginInvoke(() =>
+                        {
+                            ActivityGrid.Visibility = Visibility.Visible;
+                            progessBar.Visibility = Visibility.Collapsed;
+                            progessBar.IsEnabled = false;
+                        });
+
+                }
+
+            }
+
+        }
 
         #endregion
 
