@@ -63,16 +63,26 @@ namespace Foursquare_Black
                 //if back button is pressed and the screen isnt showing the profile grid
                 //then that means we are viewing another grid. so close all other grids
                 //and show the user profile grid
-                if (userProfileGrid.Visibility == System.Windows.Visibility.Collapsed && loggedIn == true)
+                if (userProfileGrid.Visibility == System.Windows.Visibility.Collapsed && loggedIn == true && showFriendProfileGrid.Visibility == System.Windows.Visibility.Collapsed)
                 {
                     userProfileGrid.Visibility = System.Windows.Visibility.Visible;
                     CheckInGrid.Visibility = System.Windows.Visibility.Collapsed;
                     friendShowGrid.Visibility = System.Windows.Visibility.Collapsed;
                     showTipGrid.Visibility = System.Windows.Visibility.Collapsed;
                     showMayorGrid.Visibility = System.Windows.Visibility.Collapsed;
+                    showFriendProfileGrid.Visibility = System.Windows.Visibility.Collapsed;
                     //e.cancel stops app frem going back or backing out
                     e.Cancel = true;
                 }
+                    //if the friend profile is currently visible
+                else if(showFriendProfileGrid.Visibility == System.Windows.Visibility.Visible)
+                {
+                    //close the friend profile view and show the list of all your friends
+                    showFriendProfileGrid.Visibility = System.Windows.Visibility.Collapsed;
+                    friendShowGrid.Visibility = System.Windows.Visibility.Visible;
+                    e.Cancel = true;
+                }
+
             }
             else if(panoramaItem.Name == "ActivityPanorama")
             {
@@ -203,6 +213,7 @@ namespace Foursquare_Black
 
         private void friendsGrid_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {
+            
             userProfileGrid.Visibility = System.Windows.Visibility.Collapsed;
             MainProgessBar.Visibility = System.Windows.Visibility.Visible;
             MainProgessBar.IsEnabled = true;
@@ -270,15 +281,36 @@ namespace Foursquare_Black
             //get the selected item
             var selectedItem = ActivityFeedLongListSelector.SelectedItem as ActivityItem;
             venueViewModel = new VenueViewModel(locationMap);
-
+            //set data context of venue 
             venuePageGrid.DataContext = venueViewModel;
-
+            //load venue
             venueViewModel.loadVenueData(venuePageGrid, ActivityProgressBar, selectedItem.venueId);
+            //close current grid
             ActivityFeedGrid.Visibility = System.Windows.Visibility.Collapsed;
+            //make progress bar visible
             ActivityProgressBar.IsEnabled = true;
             ActivityProgressBar.Visibility = System.Windows.Visibility.Visible;
 
             ActivityFeedLongListSelector.SelectedItem = null;
+        }
+
+        //when friend is selected then load friend profile
+        private void friendListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (friendListBox.SelectedItem == null)
+                return;
+
+            //get selected item from listbox and cast it
+            var selectedItem = friendListBox.SelectedItem as FriendItem;
+            //load profile for selected friend
+            userViewModel.loadFriendProfile(selectedItem.id, showFriendProfileGrid, MainProgessBar);
+            //make our progress bar active
+            MainProgessBar.Visibility = System.Windows.Visibility.Visible;
+            MainProgessBar.IsEnabled = true;
+            //close currently open grid
+            friendShowGrid.Visibility = System.Windows.Visibility.Collapsed;
+
+            friendListBox.SelectedItem = null;
         }
 
     }

@@ -70,5 +70,16 @@ namespace Foursquare_Black
 
             }
         }
+
+        private void refreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            //execute when page loads
+            var url = "https://foursquare.com/oauth2/authorize?display=touch&client_id="
+                        + App.clientId + "&client_secret=" + App.clientSecret + "&response_type=token&redirect_uri=http://www.foursquare.com";
+
+            //navigate web browser to this link
+            WebBrowserLogin.Navigate(new Uri(url, UriKind.RelativeOrAbsolute));
+            WebBrowserLogin.Navigating += WebBrowserLogin_Navigating;
+        }
     }
 }

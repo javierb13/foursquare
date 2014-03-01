@@ -102,6 +102,7 @@
     <Compile Include="ClassFolder\ExploreClass.cs" />
     <Compile Include="ClassFolder\exploreItem.cs" />
     <Compile Include="ClassFolder\FriendItem.cs" />
+    <Compile Include="ClassFolder\friendProfileItem.cs" />
     <Compile Include="ClassFolder\FriendsClass.cs" />
     <Compile Include="ClassFolder\GroupItem.cs" />
     <Compile Include="ClassFolder\mayorshipClass.cs" />

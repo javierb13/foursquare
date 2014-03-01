@@ -23,7 +23,12 @@
 
         <!--ContentPanel - place additional content here-->
         <Grid x:Name="ContentPanel" Grid.Row="1" Margin="12,0,12,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
             <phone:WebBrowser x:Name="WebBrowserLogin" IsScriptEnabled="True" />
+            <Button Grid.Row="1" x:Name="refreshButton" Content="Refresh Page" Height="80" Click="refreshButton_Click" />
         </Grid>
     </Grid>
 

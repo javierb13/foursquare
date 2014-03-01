@@ -293,7 +293,7 @@
                     
                     <!--friends grid-->
                     <Grid x:Name="friendShowGrid" Visibility="Collapsed">
-                        <ListBox x:Name="friendListBox" ItemsSource="{Binding FriendItem}">
+                        <ListBox x:Name="friendListBox" SelectionChanged="friendListBox_SelectionChanged" ItemsSource="{Binding FriendItem}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Margin="0,0,0,15">
@@ -351,6 +351,84 @@
                                 </DataTemplate>
                             </phone:LongListSelector.ItemTemplate>
                         </phone:LongListSelector>
+                    </Grid>
+                    
+                    <!--this grid shows friend profile-->
+                    <Grid Visibility="Collapsed" x:Name="showFriendProfileGrid">
+                        <ListBox ItemsSource="{Binding FriendProfileList}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <StackPanel Margin="0,0,0,25">
+                                            <TextBlock FontSize="28" Foreground="LightBlue" Text="{Binding firstName}" Margin="0,0,5,0"/>
+                                            <TextBlock FontSize="28" Foreground="LightBlue" Text="{Binding lastName}" />
+                                        </StackPanel>
+
+
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,25">
+                                            <!--user photo-->
+                                            <Image Source="{Binding image}" Width="80" />
+                                            <!--user bio-->
+                                            <TextBlock Text="{Binding bio}" TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <!--progress bar-->
+                                        <Grid Margin="0,0,0,25">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition/>
+                                                <RowDefinition/>
+                                            </Grid.RowDefinitions>
+
+                                            <ProgressBar Height="10" Grid.Row="0" Grid.ColumnSpan="2" Foreground="LightBlue" IsIndeterminate="False" Value="{Binding recentScore}" Maximum="{Binding maxScore}" />
+
+                                            <StackPanel Grid.Row="1" HorizontalAlignment="Left" Orientation="Horizontal">
+                                                <TextBlock Foreground="LightBlue" Text="{Binding recentScore}" />
+                                                <TextBlock Foreground="Gray" Text=" Last 7 Days"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <TextBlock Foreground="LightBlue" Text="{Binding maxScore}" />
+                                                <TextBlock Foreground="Gray" Text=" High Score"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        
+                                        <!--last check in-->
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,25">
+                                            <!--category image-->
+                                            <Image Source="{Binding categoryImage}" Width="64" />
+                                            <!--venue name-->
+                                            <TextBlock Foreground="White" Text="{Binding lastLocation}" TextWrapping="Wrap" FontSize="28" />
+                                        </StackPanel>
+                                        
+                                        <!--friend count-->
+                                        <StackPanel Margin="0,0,0,25">
+                                            <TextBlock Foreground="LightBlue" Text="friends" FontSize="28" />
+                                            <!--number of friends-->
+                                            <TextBlock Foreground="White" Text="{Binding friendCount}" />
+                                        </StackPanel>
+                                        
+                                        <!--friend hometown-->
+                                        <StackPanel Margin="0,0,0,25">
+                                            <TextBlock Foreground="LightBlue" FontSize="28" Text="hometown" />
+                                            <!--hometown-->
+                                            <TextBlock Foreground="White" Text="{Binding hometown}" />
+                                        </StackPanel>
+                                        
+                                        <!--friend check in count-->
+                                        <StackPanel Margin="0,0,0,25">
+                                            <TextBlock Foreground="LightBlue" Text="check-ins" FontSize="28" />
+                                            <!--amount of friends-->
+                                            <TextBlock Foreground="White" Text="{Binding checkInCount}" />
+                                        </StackPanel>
+                                        
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
                     </Grid>
 
                     <!--progress bar to indicate loading when signing in and data is being fetched-->
@@ -486,7 +564,7 @@
                         </StackPanel>
                         
                         <!--description-->
-                            <StackPanel x:Name="detailStackPanel" Grid.Row="2">
+                        <StackPanel x:Name="detailStackPanel" Grid.Row="2">
                                 <ListBox ItemsSource="{Binding VenueItems}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
@@ -550,9 +628,6 @@
                                 </ListBox>
                             </StackPanel>
                         
-                        
-                        
-
                     </Grid>
                     </ScrollViewer>
                     

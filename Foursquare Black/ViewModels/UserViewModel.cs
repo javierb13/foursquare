@@ -75,6 +75,19 @@ namespace Foursquare_Black.ViewModels
             }
         }
 
+        //used to view friends profile
+        ObservableCollection<friendProfileItem> friendProfileList = new ObservableCollection<friendProfileItem>();
+        public ObservableCollection<friendProfileItem> FriendProfileList
+        {
+            get { return friendProfileList; }
+            set
+            {
+                friendProfileList = value;
+                NotifyPropertyChanged("FriendProfileList");
+            }
+        }
+
+
         ObservableCollection<TipsItem> tipItem = new ObservableCollection<TipsItem>();
         public ObservableCollection<TipsItem> TipItem
         {
@@ -112,6 +125,14 @@ namespace Foursquare_Black.ViewModels
         //We will store our map in this variable which is passed in the 
         //constructor
         Map MyMap;
+
+        #region already loaded bools
+        //bool if friends list already loaded
+        bool friendsLoaded = false;
+        bool tipsLoaded = false;
+        bool mayorsLoaded = false;
+        bool checkInsLoaded = false;
+        #endregion
 
         //class constructor
         public UserViewModel(Map map)
@@ -269,68 +290,82 @@ namespace Foursquare_Black.ViewModels
         //load check ins pass in grid and progressbar to change visibility
         public async void loadCheckIns(Grid checkInGrid, ProgressBar progressBar)
         {
-            //check ins url
-            var url = "https://api.foursquare.com/v2/users/self/checkins?oauth_token=" + App.accessToken + "&limit=10" + "&v=" + App.date;
-
-            //string that will hold json string response
-            string response = null;
-
-            //bool for errors
-            bool error = false;
-
-            //try catch around our network call
-            try
+            if (!checkInsLoaded)
             {
-                //make call to url and store returned json string into response variable
-                response = await client.GetStringAsync(url);
-            }
-            catch
-            {
-                //set error to true if exception is caught
-                error = true;
-            }
+                //check ins url
+                var url = "https://api.foursquare.com/v2/users/self/checkins?oauth_token=" + App.accessToken + "&limit=10" + "&v=" + App.date;
 
-            if(!error)
-            {
-                //temp bool for json error
-                bool jsonError = false;
-                //temporary list to deserialize json to
-                CheckIn.RootObject checkInList = null;
+                //string that will hold json string response
+                string response = null;
+
+                //bool for errors
+                bool error = false;
+
+                //try catch around our network call
                 try
                 {
-                    //deserialize json
-                    checkInList = JsonConvert.DeserializeObject<CheckIn.RootObject>(response);
+                    //make call to url and store returned json string into response variable
+                    response = await client.GetStringAsync(url);
                 }
                 catch
                 {
-                    //set error to true if exception caught
-                    jsonError = true;
+                    //set error to true if exception is caught
+                    error = true;
                 }
 
-                //do this if there was no error
-                if(!jsonError)
+                if (!error)
                 {
-                    for(int x = 0; x < checkInList.response.checkins.items.Count; x++)
+                    //temp bool for json error
+                    bool jsonError = false;
+                    //temporary list to deserialize json to
+                    CheckIn.RootObject checkInList = null;
+                    try
                     {
-                        CheckInItems.Add(new checkInItem()
-                        {
-                            shout = checkInList.response.checkins.items[x].shout,
-                            venueName = checkInList.response.checkins.items[x].venue.name,
-                            latitude = checkInList.response.checkins.items[x].venue.location.lat,
-                            longitude = checkInList.response.checkins.items[x].venue.location.lng,
-                            timeAgo = checkInList.response.checkins.items[x].timeZoneOffset,
-                            image = checkInList.response.checkins.items[x].venue.categories[0].icon.prefix + "bg_64" + checkInList.response.checkins.items[x].venue.categories[0].icon.suffix
-                        });
+                        //deserialize json
+                        checkInList = JsonConvert.DeserializeObject<CheckIn.RootObject>(response);
+                    }
+                    catch
+                    {
+                        //set error to true if exception caught
+                        jsonError = true;
                     }
 
-                    Deployment.Current.Dispatcher.BeginInvoke(() =>
+                    //do this if there was no error
+                    if (!jsonError)
+                    {
+                        for (int x = 0; x < checkInList.response.checkins.items.Count; x++)
+                        {
+                            CheckInItems.Add(new checkInItem()
+                            {
+                                shout = checkInList.response.checkins.items[x].shout,
+                                venueName = checkInList.response.checkins.items[x].venue.name,
+                                latitude = checkInList.response.checkins.items[x].venue.location.lat,
+                                longitude = checkInList.response.checkins.items[x].venue.location.lng,
+                                timeAgo = checkInList.response.checkins.items[x].timeZoneOffset,
+                                image = checkInList.response.checkins.items[x].venue.categories[0].icon.prefix + "bg_64" + checkInList.response.checkins.items[x].venue.categories[0].icon.suffix
+                            });
+                        }
+
+                        Deployment.Current.Dispatcher.BeginInvoke(() =>
+                            {
+                                checkInGrid.Visibility = Visibility.Visible;
+                                progressBar.Visibility = Visibility.Collapsed;
+                                progressBar.IsEnabled = false;
+                            });
+
+                        checkInsLoaded = true;
+                    }
+
+                }
+            }
+            else
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
                         {
                             checkInGrid.Visibility = Visibility.Visible;
                             progressBar.Visibility = Visibility.Collapsed;
                             progressBar.IsEnabled = false;
                         });
-                }
-
             }
 
 
@@ -421,64 +456,80 @@ namespace Foursquare_Black.ViewModels
         //load friends list
         public async void loadFriends(Grid friendGrid, ProgressBar progressBar)
         {
-            //the url to get our friends
-            var url = "https://api.foursquare.com/v2/users/self/friends?oauth_token=" + App.accessToken + "&v=" + App.date;
-
-            //bool for error
-            bool error = false;
-
-            //string to hold response
-            string response=null;
-
-            try
+            //check if friends were already loaded
+            //if they were skip reloading them
+            if (!friendsLoaded)
             {
-                response = await client.GetStringAsync(url);
-            }
-            catch
-            {
-                //set error to true if exception was thrown
-                error = true;
-            }
+                //the url to get our friends
+                var url = "https://api.foursquare.com/v2/users/self/friends?oauth_token=" + App.accessToken + "&v=" + App.date;
 
-            //if no error then deserialize
-            if(!error)
-            {
-                //bool for json errors
-                bool jsonError = false;
+                //bool for error
+                bool error = false;
 
-                //object to deserialize to
-                FriendsClass.RootObject fc = null;
+                //string to hold response
+                string response = null;
+
                 try
                 {
-                    //deserialize data
-                    fc = JsonConvert.DeserializeObject<FriendsClass.RootObject>(response);
+                    response = await client.GetStringAsync(url);
                 }
                 catch
                 {
-                    jsonError = true;
+                    //set error to true if exception was thrown
+                    error = true;
                 }
 
-                //if no error lets put items into list
-                if(!jsonError)
+                //if no error then deserialize
+                if (!error)
                 {
-                    for(int x = 0; x < fc.response.friends.count; x++)
+                    //bool for json errors
+                    bool jsonError = false;
+
+                    //object to deserialize to
+                    FriendsClass.RootObject fc = null;
+                    try
                     {
-                        FriendItem.Add(new FriendItem()
-                            {
-                                hometown = fc.response.friends.items[x].homeCity,
-                                id = fc.response.friends.items[x].id,
-                                name = fc.response.friends.items[x].firstName + " " + fc.response.friends.items[x].lastName,
-                                image = fc.response.friends.items[x].photo.prefix + "100x100" + fc.response.friends.items[x].photo.suffix
-                            });
+                        //deserialize data
+                        fc = JsonConvert.DeserializeObject<FriendsClass.RootObject>(response);
+                    }
+                    catch
+                    {
+                        jsonError = true;
                     }
 
-                    Deployment.Current.Dispatcher.BeginInvoke(() =>
+                    //if no error lets put items into list
+                    if (!jsonError)
+                    {
+                        for (int x = 0; x < fc.response.friends.count; x++)
                         {
-                            friendGrid.Visibility = Visibility.Visible;
-                            progressBar.Visibility = Visibility.Collapsed;
-                            progressBar.IsEnabled = false;
-                        });
+                            FriendItem.Add(new FriendItem()
+                                {
+                                    hometown = fc.response.friends.items[x].homeCity,
+                                    id = fc.response.friends.items[x].id,
+                                    name = fc.response.friends.items[x].firstName + " " + fc.response.friends.items[x].lastName,
+                                    image = fc.response.friends.items[x].photo.prefix + "100x100" + fc.response.friends.items[x].photo.suffix
+                                });
+                        }
+
+                        Deployment.Current.Dispatcher.BeginInvoke(() =>
+                            {
+                                friendGrid.Visibility = Visibility.Visible;
+                                progressBar.Visibility = Visibility.Collapsed;
+                                progressBar.IsEnabled = false;
+                            });
+
+                        friendsLoaded = true;
+                    }
                 }
+            }
+            else
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    friendGrid.Visibility = Visibility.Visible;
+                    progressBar.Visibility = Visibility.Collapsed;
+                    progressBar.IsEnabled = false;
+                });
             }
 
         }
@@ -486,133 +537,162 @@ namespace Foursquare_Black.ViewModels
         //load Tips
         public async void loadTips(Grid tipGrid, ProgressBar progressBar)
         {
-            //bool for error
-            bool error = false;
-
-            //url
-            string url = "https://api.foursquare.com/v2/users/self/tips?sort=recent&oauth_token=" + App.accessToken + "&v=" + App.date;
-
-            //string will store json response
-            string response = null;
-
-            try
+            if (!tipsLoaded)
             {
-                response = await client.GetStringAsync(url);
-            }
-            catch
-            {
-                //set error to true for caught exception
-                error = true;
-            }
+                //bool for error
+                bool error = false;
 
-            //if no error then deserialize
-            if(!error)
-            {
-                //bool for json errors
-                bool jsonError = false;
+                //url
+                string url = "https://api.foursquare.com/v2/users/self/tips?sort=recent&oauth_token=" + App.accessToken + "&v=" + App.date;
 
-                //object to parts json
-                TipClass.RootObject tc = null;
+                //string will store json response
+                string response = null;
 
-                //try catch incase json fails
                 try
                 {
-                    tc = JsonConvert.DeserializeObject<TipClass.RootObject>(response);
+                    response = await client.GetStringAsync(url);
                 }
                 catch
                 {
-                    //make true if exception caught
-                    jsonError = true;
+                    //set error to true for caught exception
+                    error = true;
                 }
 
-                //if no error then continue
-                if(!jsonError)
+                //if no error then deserialize
+                if (!error)
                 {
-                    for(int x = 0; x < tc.response.tips.count; x++)
+                    //bool for json errors
+                    bool jsonError = false;
+
+                    //object to parts json
+                    TipClass.RootObject tc = null;
+
+                    //try catch incase json fails
+                    try
                     {
-                        TipItem.Add(new TipsItem()
-                        {
-                            restName = tc.response.tips.items[x].venue.name,
-                            id = tc.response.tips.items[x].venue.id,
-                            tipNote = tc.response.tips.items[x].text
-                        });
+                        tc = JsonConvert.DeserializeObject<TipClass.RootObject>(response);
+                    }
+                    catch
+                    {
+                        //make true if exception caught
+                        jsonError = true;
                     }
 
-                    Deployment.Current.Dispatcher.BeginInvoke(() =>
+                    //if no error then continue
+                    if (!jsonError)
+                    {
+                        for (int x = 0; x < tc.response.tips.count; x++)
+                        {
+                            TipItem.Add(new TipsItem()
+                            {
+                                restName = tc.response.tips.items[x].venue.name,
+                                id = tc.response.tips.items[x].venue.id,
+                                tipNote = tc.response.tips.items[x].text
+                            });
+                        }
+
+                        Deployment.Current.Dispatcher.BeginInvoke(() =>
+                            {
+                                progressBar.Visibility = Visibility.Collapsed;
+                                progressBar.IsEnabled = false;
+                                tipGrid.Visibility = Visibility.Visible;
+                            });
+
+                        tipsLoaded = true;
+                    }
+
+                }
+            }
+            else
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
                         {
                             progressBar.Visibility = Visibility.Collapsed;
                             progressBar.IsEnabled = false;
                             tipGrid.Visibility = Visibility.Visible;
                         });
-                }
-
             }
+            
         }
 
         //load mayoriship
         public async void loadMayorShip(Grid mayorGrid, ProgressBar progressBar)
         {
-            //bool for error
-            bool error = false;
-
-            //url string
-            string url = "https://api.foursquare.com/v2/users/self/mayorships?oauth_token=" + App.accessToken + "&v=" + App.date;
-
-            //variable to hold response
-            string response = null;
-
-            //try catch to catch any web errors
-            try
+            if (!mayorsLoaded)
             {
-                response = await client.GetStringAsync(url);
-            }
-            catch
-            {
-                //catch error
-                error = true;
-            }
+                //bool for error
+                bool error = false;
 
-            //if no error then deserialize
-            if(!error)
-            {
-                //bool for json errors
-                bool jsonError = false;
-                //json object to deserialize to
-                mayorshipClass.RootObject mc = null;
+                //url string
+                string url = "https://api.foursquare.com/v2/users/self/mayorships?oauth_token=" + App.accessToken + "&v=" + App.date;
 
+                //variable to hold response
+                string response = null;
+
+                //try catch to catch any web errors
                 try
                 {
-                    mc = JsonConvert.DeserializeObject<mayorshipClass.RootObject>(response);
+                    response = await client.GetStringAsync(url);
                 }
                 catch
                 {
-                    //set to true when error caught
-                    jsonError = true;
+                    //catch error
+                    error = true;
                 }
 
-                //if no error
-                if(!jsonError)
+                //if no error then deserialize
+                if (!error)
                 {
-                    for(int x = 0; x < mc.response.mayorships.items.Count; x++)
+                    //bool for json errors
+                    bool jsonError = false;
+                    //json object to deserialize to
+                    mayorshipClass.RootObject mc = null;
+
+                    try
                     {
-                        MayorItem.Add(new mayorshipItem()
-                        {
-                            category = mc.response.mayorships.items[x].venue.categories[0].name,
-                            id = mc.response.mayorships.items[x].venue.id,
-                            venueName = mc.response.mayorships.items[x].venue.name,
-                            image = mc.response.mayorships.items[x].venue.categories[0].icon.prefix +"bg_64" + mc.response.mayorships.items[x].venue.categories[0].icon.suffix
-                        });
+                        mc = JsonConvert.DeserializeObject<mayorshipClass.RootObject>(response);
+                    }
+                    catch
+                    {
+                        //set to true when error caught
+                        jsonError = true;
                     }
 
-                    Deployment.Current.Dispatcher.BeginInvoke(() =>
+                    //if no error
+                    if (!jsonError)
+                    {
+                        for (int x = 0; x < mc.response.mayorships.items.Count; x++)
+                        {
+                            MayorItem.Add(new mayorshipItem()
+                            {
+                                category = mc.response.mayorships.items[x].venue.categories[0].name,
+                                id = mc.response.mayorships.items[x].venue.id,
+                                venueName = mc.response.mayorships.items[x].venue.name,
+                                image = mc.response.mayorships.items[x].venue.categories[0].icon.prefix + "bg_64" + mc.response.mayorships.items[x].venue.categories[0].icon.suffix
+                            });
+                        }
+
+                        Deployment.Current.Dispatcher.BeginInvoke(() =>
+                        {
+                            mayorGrid.Visibility = Visibility.Visible;
+                            progressBar.Visibility = Visibility.Collapsed;
+                            progressBar.IsEnabled = false;
+                        });
+
+                        mayorsLoaded = true;
+                    }
+
+
+                }
+            }
+            else
+            {
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
                     {
                         mayorGrid.Visibility = Visibility.Visible;
                         progressBar.Visibility = Visibility.Collapsed;
                         progressBar.IsEnabled = false;
                     });
-                }
-
-
             }
 
         }
@@ -683,6 +763,198 @@ namespace Foursquare_Black.ViewModels
 
             }
 
+        }
+
+        public async void loadFriendProfile(string userId ,Grid friendProfileGrid, ProgressBar progressBar)
+        {
+            //variable to hold response
+            string returnedUserJson = null;
+            //use this bool to check for any errors that occur
+            bool hasError = false;
+            //url
+            string url = "https://api.foursquare.com/v2/users/" + userId + "?oauth_token=" + App.accessToken + "&v=" + App.date;
+
+            //place web calls in try catch block just incase a network error occurs
+            //try catch will also stop app from crashing if error does occur
+            try
+            {
+                //client.getStringAsync will make the asynchronous call to the desired url
+                //the response (json string) will be stored into the returnedUser string
+                returnedUserJson = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                //set error to true because a web exception occurred
+                hasError = true;
+            }
+
+
+            //if has error is false then we can deserialize the string
+            if (!hasError)
+            {
+                //bool to signify error
+                bool jsonError = false;
+
+                //the object we will deserialize to
+                UserClass.RootObject uc = null;
+
+                //try catch json incase some unknown error happens like an int being set to null
+                try
+                {
+                    //let Json.Net deserialize the json string. passing in the json string we recieved and the typeof
+                    uc = (UserClass.RootObject)JsonConvert.DeserializeObject(returnedUserJson, typeof(UserClass.RootObject));
+                }
+                catch
+                {
+                    //if there was an error
+                    jsonError = true;
+                }
+
+                //if there was no error then let us set our variables
+                if (!jsonError)
+                {
+                    //now since we only load one persons profile at a time we will check the count of how mant items are in the lost
+                    //if the list has no items then we procede as normal.
+                    //but if the list does have an item in it. we do NOT add an item. we just change the values of the current item
+                    //this allows up to save memory
+                    if (FriendProfileList.Count == 0)
+                    {
+                        //set variables the long way because of null classes that can be sent back if you have an unused account
+                        friendProfileItem up = new friendProfileItem();
+                        up.firstName = uc.response.user.firstName;
+                        up.lastName = uc.response.user.lastName;
+                        up.hometown = uc.response.user.homeCity;
+                        up.tipCount = uc.response.user.tips.count;
+                        up.badgesCount = uc.response.user.badges.count;
+                        up.checkInCount = uc.response.user.checkins.count;
+                        up.friendCount = uc.response.user.friends.count;
+                        up.email = uc.response.user.contact.email;
+                        up.image = uc.response.user.photo.prefix + "original" + uc.response.user.photo.suffix;
+                        up.bio = uc.response.user.bio;
+                        //when a user has no recent or max score the server returns null to the class
+                        //we need to do this so that the any variables used inside scores class have a default value
+                        if (uc.response.user.scores == null)
+                        {
+                            up.maxScore = 0;
+                            up.recentScore = 0;
+                        }
+                        else
+                        {
+                            up.maxScore = uc.response.user.scores.max;
+                            up.recentScore = uc.response.user.scores.recent;
+                        }
+
+                        up.mayorshipCount = uc.response.user.mayorships.count;
+
+                        //have to check count of checkin items. for someone who has never checked in the class will be null
+                        //causing the application to crash
+                        if (uc.response.user.checkins.items.Count > 0)
+                        {
+                            up.lastLocation = uc.response.user.checkins.items.First().venue.name;
+                            up.categoryImage = uc.response.user.checkins.items.First().venue.categories.First().icon.prefix + "bg_64" + uc.response.user.checkins.items.First().venue.categories.First().icon.suffix;
+                            up.lastLongitudeLocation = uc.response.user.checkins.items.First().venue.location.lng;
+                            up.lastLatitudeLocation = uc.response.user.checkins.items.First().venue.location.lat;
+
+                            //finally add user to list
+                            FriendProfileList.Add(up);
+                            up = null;
+
+                            //set map coordinates if there was a last known place
+                            setMapToLastVisitedLocation(new GeoCoordinate() { Latitude = UserProfile[0].lastLatitudeLocation, Longitude = userProfile[0].lastLongitudeLocation });
+                        }
+                        else
+                        {
+                            up.lastLocation = uc.response.user.firstName + " " + uc.response.user.lastName + " has no last known location";
+
+                            //finally add user to list
+                            UserProfile.Add(up);
+                            up = null;
+
+                        }
+                    }
+                    else if(FriendProfileList.Count == 1)
+                    {
+                        //set variables the long way because of null classes that can be sent back if you have an unused account
+                        friendProfileItem up = new friendProfileItem();
+                        up.firstName = uc.response.user.firstName;
+                        up.lastName = uc.response.user.lastName;
+                        up.hometown = uc.response.user.homeCity;
+                        up.tipCount = uc.response.user.tips.count;
+                        up.badgesCount = uc.response.user.badges.count;
+                        up.checkInCount = uc.response.user.checkins.count;
+                        up.friendCount = uc.response.user.friends.count;
+                        up.email = uc.response.user.contact.email;
+                        up.image = uc.response.user.photo.prefix + "original" + uc.response.user.photo.suffix;
+                        up.bio = uc.response.user.bio;
+                        //when a user has no recent or max score the server returns null to the class
+                        //we need to do this so that the any variables used inside scores class have a default value
+                        if (uc.response.user.scores == null)
+                        {
+                            up.maxScore = 0;
+                            up.recentScore = 0;
+                        }
+                        else
+                        {
+                            up.maxScore = uc.response.user.scores.max;
+                            up.recentScore = uc.response.user.scores.recent;
+                        }
+
+                        up.mayorshipCount = uc.response.user.mayorships.count;
+
+                        //have to check count of checkin items. for someone who has never checked in the class will be null
+                        //causing the application to crash
+                        if (uc.response.user.checkins.items.Count > 0)
+                        {
+                            up.lastLocation = uc.response.user.checkins.items.First().venue.name;
+                            up.categoryImage = uc.response.user.checkins.items.First().venue.categories.First().icon.prefix + "bg_64" + uc.response.user.checkins.items.First().venue.categories.First().icon.suffix;
+                            up.lastLongitudeLocation = uc.response.user.checkins.items.First().venue.location.lng;
+                            up.lastLatitudeLocation = uc.response.user.checkins.items.First().venue.location.lat;
+
+                            //finally add user to list
+                            FriendProfileList.Add(up);
+                            FriendProfileList.RemoveAt(0);
+                            up = null;
+
+                            //set map coordinates if there was a last known place
+                            setMapToLastVisitedLocation(new GeoCoordinate() { Latitude = UserProfile[0].lastLatitudeLocation, Longitude = userProfile[0].lastLongitudeLocation });
+                        }
+                        else
+                        {
+                            up.lastLocation = uc.response.user.firstName + " " + uc.response.user.lastName + " has no last known location";
+
+                            //finally add user to list
+                            UserProfile.Add(up);
+                            UserProfile.RemoveAt(0);
+                            up = null;
+
+                        }
+                    }
+
+
+                    //this delay will allow the ui to load up all information
+                    //we delay showing the profile by one second while images load
+                    await Task.Delay(1000);
+
+                    //change visibility to make profile grid visible
+                    //and make visibility of progress bar collapsed
+                    Deployment.Current.Dispatcher.BeginInvoke(() =>
+                    {
+
+                        friendProfileGrid.Visibility = Visibility.Visible;
+                        progressBar.Visibility = Visibility.Collapsed;
+                        progressBar.IsEnabled = false;
+                    });
+
+
+                }
+
+
+            }
+            //there was an error so just stop the loading and pop up a message box
+            else
+            {
+
+            }
         }
 
         #endregion

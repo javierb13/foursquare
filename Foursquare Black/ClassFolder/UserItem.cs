@@ -51,5 +51,6 @@ namespace Foursquare_Black.ClassFolder
         //longitude and latitude for last location
         public double lastLongitudeLocation { get; set; }
         public double lastLatitudeLocation { get; set; }
+
     }
 }
